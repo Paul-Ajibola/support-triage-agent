@@ -31,7 +31,7 @@ Respond ONLY with JSON in this exact format, no other text:
 def classify_ticket_finetuned(body: str) -> dict:
     start = time.time()
 
-    response = clientchat.completions.create(
+    response = client.chat.completions.create(
         model="finetuned-llama-3-8b",   # llama.cpp server ignores this but he SDK requires it
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -59,4 +59,3 @@ def classify_ticket_finetuned(body: str) -> dict:
         "input_tokens": usage.prompt_tokens if usage else None,
         "output_tokens": usage.completion_tokens if usage else None,
     }
-    

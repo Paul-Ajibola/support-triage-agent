@@ -13,7 +13,7 @@ import json
 
 
 
-def intent_routing(state: AgentState) -> AgentState:
+def _keyword_fallback(body: str) -> dict:
     "Determines what is the intent of the ticket and classifies its urgency"
     body = state["body"].lower()
 
@@ -46,4 +46,6 @@ def intent_routing(state: AgentState) -> AgentState:
     state["category"] = result["category"]
     state["urgency"] = result["urgency"]
     return state
+
+
 
