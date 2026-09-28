@@ -50,7 +50,12 @@ def tool_execution(state: AgentState) -> AgentState:
             validate_ticket_lookup(state["body"])
             results["ticket_lookup"] = ticket_lookup(state["body"])
         except ToolValidationError as e:
-            log_security_event("tool_validation_failed", details={"tool": "ticket_lookup", "error": str(e)})
+            log_security_event(
+                ticket_id=state.get("tocket_id", "unknown"), 
+                event_type="tool_validation_failed",
+                detail=f"ticket_lookup: {e}",
+                ticket_body=state.get("body", ""),
+                )
             validation_errors.append(str(e))
             results["ticket_lookup"] = {"error": str(e)}
 
@@ -70,7 +75,12 @@ def tool_execution(state: AgentState) -> AgentState:
             validate_account_context_db(account_id)
             results["account_context_db"] = account_context_db(account_id)
         except ToolValidationError as e:
-            log_security_event("tool_validation_failed", details={"tool": "account_context_db", "error": str(e)})
+            log_security_event(
+                ticket_id=state.get("ticket_id", "unknown"), 
+                event_type="tool_validation_failed",
+                detail=f"account_context_db: {e}",
+                ticket_body=state.get("body", ""),
+                )
             validation_errors.append(str(e))
             results["account_context_db"] = {"error": str(e)}
 

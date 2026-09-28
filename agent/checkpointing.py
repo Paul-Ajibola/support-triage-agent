@@ -19,4 +19,3 @@ def get_checkpointer():
     return checkpointer
 
 
-

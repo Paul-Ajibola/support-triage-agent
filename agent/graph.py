@@ -25,20 +25,23 @@ from agent.state import AgentState
 # the redis checkpointer
 from agent.checkpointing import get_checkpointer
 
-# the node
+# the nodes
 from agent.nodes.intent_routing import intent_routing
 from agent.nodes.context_enrichment import context_enrichment
 from agent.nodes.tool_execution import tool_execution
 from agent.nodes.safety_verification import safety_verification
 from agent.nodes.draft_generation import draft_generation
-from agent.nodes.injection_guardrail import injection_guardrail
+# from agent.nodes.injection_guardrail import injection_guardrail
+from agent.security.injection_guardrail import injection_guardrail
 from agent.nodes.human_escalation import human_escalation
 from agent.nodes.routing import route_after_guardrail
 
 
 
 
+
 builder = StateGraph(AgentState)
+
 
 # create the nodes
 builder.add_node("injection_guardrail", injection_guardrail)
@@ -51,6 +54,7 @@ builder.add_node("draft_generation", draft_generation)
 
 # set the entry_point
 builder.set_entry_point("injection_guardrail")
+
 
 # build the condition for the incoming ticket, and add edges
 builder.add_conditional_edges(

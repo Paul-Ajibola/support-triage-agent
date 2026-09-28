@@ -12,6 +12,7 @@ from agent.security.guardrail import scan_for_injection
 from agent.security.audit_log import log_security_event
 
 
+
 def injection_guardrail(state: AgentState) -> AgentState:
     result = scan_for_injection(state["body"])
     state["is_flagged"] = result["is_injection"]
