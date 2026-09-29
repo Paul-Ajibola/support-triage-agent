@@ -31,7 +31,7 @@ def ticket_lookup(query: str, limit: int = 3) -> list[dict]:
     return [
         {"ticket_id": r[0], "title": r[1], "resolution": r[2], "category": r[3]}
         for r in rows
-    ]
+        ]
 
 
     # %s is a placeholder, to be filled by `query` in the same order
