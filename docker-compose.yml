@@ -1,46 +1,49 @@
-
 services:
   postgres:
     image: postgres:16
     environment:
       POSTGRES_USER: triage
-      POSTGRES_PASSWORD: triage
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: triage_agent
+      READONLY_DB_PASSWORD: ${READONLY_DB_PASSWORD:?set READONLY_DB_PASSWORD in .env}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./deploy/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U triage -d triage_agent"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-
   redis:
-    image: redis/redis-stack-server:latest
-    ports:
-      - "6379:6379"
+    image: redis/redis-stack-server@sha256:PASTE_YOUR_DIGEST_HERE
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+      REDIS_ARGS: "--requirepass ${REDIS_PASSWORD} --appendonly yes"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # no "ports:" on purpose; only the api container needs Redis, via the compose network
 
   api:
-    build: .
-    ports:
-      - "8000:8000"
-    env_file:
-      - path: .env.local
-        required: false
+    # ...unchanged, except these two spots:
     environment:
-      DATABASE_URL: postgresql://triage:triage@postgres:5432/triage_agent
-      READONLY_DATABASE_URL: postgresql://triage_readonly:readonly_pw_change_me@postgres:5432/triage_agent
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://triage:${POSTGRES_PASSWORD}@postgres:5432/triage_agent
+      READONLY_DATABASE_URL: postgresql://triage_readonly:${READONLY_DB_PASSWORD}@postgres:5432/triage_agent
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
-
+        condition: service_healthy     
 
 volumes:
   pgdata:
-
+  redisdata:
 

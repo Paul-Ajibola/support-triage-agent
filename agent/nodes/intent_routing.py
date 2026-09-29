@@ -18,13 +18,13 @@ logging = logging.getLogger(__name__)
 
 def _keyword_fallback(body: str) -> dict:
     "Determines what is the intent of the ticket and classifies its urgency"
-    body = state["body"].lower()
+    body = body.lower()
 
     if "login" in body or "password" in body or "auth" in body:
         category = "auth"
-    elif "rate limit" in body or "billing" in body or "charge" in body:
+    elif "billing" in body or "charge" in body or "invoice" in body:
         category = "billing"
-    elif "webhook" in body or "intention" in body or "api" in body:
+    elif "webhook" in body or "integration" in body or "api" in body or "rate limit" in body:
         category = "integration"
     else:
         category = "general"
@@ -46,7 +46,7 @@ def intent_routing(state: AgentState) -> AgentState:
     except Exception:
         logger.warning("classifier failed, using keyword fallback", exc_info=True)
         result = _keyword_fallback(state["body"])
-        
+
 
     state["category"] = result["category"]
     state["urgency"] = result["urgency"]

@@ -21,3 +21,6 @@ REVOKE INSERT, UPDATE, DELETE ON accounts FROM triage_readonly;
 -- Confirm the grants
 \dp accounts
 
+-- to get my redis version running in my container
+docker image inspect redis/redis-stack-server:latest --format '{{index .RepoDigest 0}}'
+

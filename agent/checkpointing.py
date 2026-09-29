@@ -9,6 +9,9 @@ import logging
 import os
 from langgraph.checkpoint.redis import RedisSaver
 from langgraph.checkpoint.memory import MemorySaver
+from dotenv import load_dotenv
+
+
 
 load_dotenv(".env.local")
 

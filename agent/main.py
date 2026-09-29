@@ -3,7 +3,7 @@
 from fastapi import FastAPI, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from agent.graph import graph
-
+from dotenv import load_dotenv
 import os
 import hmac
 
@@ -67,4 +67,3 @@ def handle_ticket(ticket: TicketRequest):
     }
 
 
-    

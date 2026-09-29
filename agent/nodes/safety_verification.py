@@ -13,14 +13,16 @@ from agent.state import AgentState
 def safety_verification(state: AgentState) -> AgentState:
     flags = list(state.get("safety_flag", []))
 
-    sandbox_result = state["tool_results"].get("sandbox_runner")
+    tool_results = state.get("tool_results", {})
+
+    sandbox_result = tool_results.get("sandbox_runner")
     if sandbox_result and sandbox_result.get("exit_code", 0) != 0:
         flags.append("sandbox_execution_error")
     
-    account_result = state["tool_results"].get("account_context_db")
+    account_result = tool_results.get("account_context_db")
     if account_result and "error" in account_result:
         flags.append("account_lookup_failed")
 
-    state["safety_flags"] = list(dict.fromkeys(flag))
+    state["safety_flags"] = list(dict.fromkeys(flags))
     return state
 

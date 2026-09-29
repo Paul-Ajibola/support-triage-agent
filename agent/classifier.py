@@ -41,7 +41,7 @@ def _get_client() -> OpenAI:
 
 SYSTEM_PROMPT = f"""You are a support ticket classifier.
 Classify the ticket into exactly one category from: {CATEGORIES}
-And exactly one urgency level from: {URGENCY_LEVEL}
+And exactly one urgency level from: {URGENCY_LEVELS}
 Respond ONLY with JSON in this exact format, no other text:
 {{"category": "...", "urgency": "..."}}
 """
@@ -51,7 +51,7 @@ Respond ONLY with JSON in this exact format, no other text:
 def classify_ticket_finetuned(body: str) -> dict:
     start = time.time()
 
-    response = client.chat.completions.create(
+    response = _get_client().chat.completions.create(
         model="finetuned-llama-3-8b",   # llama.cpp server ignores this but he SDK requires it
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
