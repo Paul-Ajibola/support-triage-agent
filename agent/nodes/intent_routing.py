@@ -13,7 +13,7 @@ import json
 import logging
 
 
-logging = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def _keyword_fallback(body: str) -> dict:

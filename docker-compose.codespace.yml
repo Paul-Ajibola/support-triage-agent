@@ -1,0 +1,11 @@
+services:
+  redis:
+    ports:
+      - "127.0.0.1:6379:6379"
+  app:
+    network_mode: host
+    ports: !reset []
+    environment:
+      DATABASE_URL: postgresql://triage:${POSTGRES_PASSWORD}@127.0.0.1:5432/triage_agent
+      READONLY_DATABASE_URL: postgresql://triage_readonly:${READONLY_DB_PASSWORD}@127.0.0.1:5432/triage_agent
+      REDIS_URL: redis://:${REDIS_PASSWORD}@127.0.0.1:6379
