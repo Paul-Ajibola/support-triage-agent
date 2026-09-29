@@ -10,7 +10,10 @@ matching. First step in the graph — determines routing for later nodes.
 from agent.state import AgentState
 from agent.classifier import classify_ticket_finetuned
 import json
+import logging
 
+
+logging = logging.getLogger(__name__)
 
 
 def _keyword_fallback(body: str) -> dict:
@@ -41,7 +44,9 @@ def intent_routing(state: AgentState) -> AgentState:
     try:
         result = classify_ticket_finetuned(state["body"])
     except Exception:
+        logger.warning("classifier failed, using keyword fallback", exc_info=True)
         result = _keyword_fallback(state["body"])
+        
 
     state["category"] = result["category"]
     state["urgency"] = result["urgency"]
