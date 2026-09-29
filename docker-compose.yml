@@ -45,8 +45,9 @@ services:
         required: true
     environment:
       APP_ENV: production
-      API_KEY: ${API_KEY:?set API_KEY in .env}
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      DEMO_MODE: ${DEMO_MODE:-true}
+      API_KEY: ${API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY in .env}
       DATABASE_URL: postgresql://triage:${POSTGRES_PASSWORD}@postgres:5432/triage_agent
       READONLY_DATABASE_URL: postgresql://triage_readonly:${READONLY_DB_PASSWORD}@postgres:5432/triage_agent
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379

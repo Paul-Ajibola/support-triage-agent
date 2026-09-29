@@ -15,10 +15,6 @@ class AgentState(TypedDict):
     conversation_history: List[str]
     is_flagged: bool
     flag_reason: Optional[str]
-
-
-
-    
-    
-
+    guardrail_unavailable: bool
+    draft_source: Optional[str]
 

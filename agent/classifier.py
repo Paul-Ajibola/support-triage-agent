@@ -6,6 +6,9 @@ harness for comparison.
 """
 
 import json
+import logging
+import threading
+import httpx
 import os
 import time
 from openai import OpenAI
@@ -14,6 +17,8 @@ from eval.category import CATEGORIES, URGENCY_LEVELS
 
 
 load_dotenv(".env")
+
+logger = logging.getLogger(__name__)
 
 _client = None
 
@@ -37,6 +42,23 @@ def _get_client() -> OpenAI:
         )
     return _client
 
+
+
+def warm_up() -> None:
+    """Wake a sleeping HF Space in the background at app startup, so the first
+    visitor doesn't pay the cold start (they get the keyword fallback until it's up)."""
+    base = os.getenv("FINETUNED_MODEL_URL")
+    if not base:
+        return
+
+    def _ping():
+        try:
+            httpx.get(base.rstrip("/") + "/models", timeout=120)
+            logger.info("Fine-tuned model warm-up finished")
+        except Exception as e:
+            logger.warning("Fine-tuned model warm-up failed: %s", type(e).__name__)
+
+    threading.Thread(target=_ping, daemon=True).start()
 
 
 

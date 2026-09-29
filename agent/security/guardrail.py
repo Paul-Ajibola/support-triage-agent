@@ -112,6 +112,7 @@ def scan_for_injection(body: str) -> dict:
         parsed = {
             "is_injection": True,
             "reason": f"guardrail unavailable or unparseable ({type(e).__name__}): manual review",
+            "unavailable": True,
         }
 
     latency_ms = (time.time() - start) * 1000
@@ -119,6 +120,7 @@ def scan_for_injection(body: str) -> dict:
     return {
         "is_injection": _to_bool(parsed.get("is_injection", False)),
         "reason": str(parsed.get("reason", "")),
+        "unavailable": bool(parsed.get("unavailable", False))
         "latency_ms": latency_ms,
     }
 

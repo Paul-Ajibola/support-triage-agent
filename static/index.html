@@ -22,8 +22,8 @@
             <!-- Input Form Panel -->
             <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6">
                 <form id="triageForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">API Key (Optional for Local Dev)</label>
+                    <div id="apiKeyWrap" class="hidden">
+                        <label class="block text-sm font-medium text-slate-300 mb-1">API Key</label>
                         <input 
                             type="password" 
                             id="apiKey" 
@@ -81,12 +81,15 @@
                     <h2 class="text-lg font-semibold text-slate-200 mb-4 border-b border-slate-800 pb-2">Pipeline Output</h2>
                     
                     <div id="placeholder" class="text-slate-500 text-sm italic">
-                        Submit a ticket to view classification results, tool data, and security flags.
+                        Submit a ticket to see its classification, security screening result, and a drafted reply.
                     </div>
 
-                    <div id="loading" class="hidden flex justify-center items-center py-12">
+                    <div id="loading" class="hidden flex flex-col justify-center items-center py-12 gap-3">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                        <p id="slowHint" class="hidden text-xs text-slate-400 text-center">Still working. The fine-tuned model may be waking up; this can take a few seconds.</p>
                     </div>
+
+                    <div id="errorBox" class="hidden bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm rounded-lg p-3"></div>
 
                     <div id="results" class="hidden space-y-4 text-sm">
                         <div class="flex justify-between items-center">
@@ -101,17 +104,21 @@
                             <span class="text-slate-400">Urgency:</span>
                             <span id="resUrgency" class="font-semibold text-amber-300"></span>
                         </div>
+                        <div id="classifierRow" class="flex justify-between items-center">
+                            <span class="text-slate-400">Classified by:</span>
+                            <span id="resClassifier" class="text-xs font-mono text-slate-200"></span>
+                        </div>
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400">Turn Count:</span>
                             <span id="resTurns" class="font-mono text-slate-200"></span>
                         </div>
                         <div id="flagsContainer" class="hidden">
-                            <span class="text-slate-400 block mb-1">Safety Flags:</span>
+                            <span class="text-slate-400 block mb-1">Security notes:</span>
                             <div id="resFlags" class="bg-slate-950 p-2 rounded border border-slate-800 text-xs text-rose-400 font-mono"></div>
                         </div>
                         <div>
-                            <span class="text-slate-400 block mb-1">Draft Response / Resolution:</span>
-                            <div id="resResponse" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-300 text-xs leading-relaxed max-h-40 overflow-y-auto"></div>
+                            <span class="text-slate-400 block mb-1">Draft reply <span id="resDraftSource" class="text-slate-500"></span></span>
+                            <div id="resResponse" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-300 text-xs leading-relaxed max-h-56 overflow-y-auto"></div>
                         </div>
                     </div>
                 </div>
@@ -125,67 +132,95 @@
     </div>
 
     <script>
-        function loadPreset(id, text) {
-            document.getElementById('ticketId').value = id;
-            document.getElementById('ticketBody').value = text;
+        const $ = id => document.getElementById(id);
+        const newId = prefix => `${prefix}-${Math.random().toString(36).slice(2, 6)}`;
+
+        // Presets get a fresh suffix so visitors never share a conversation thread.
+        function loadPreset(prefix, text) {
+            $('ticketId').value = newId(prefix);
+            $('ticketBody').value = text;
         }
 
-        document.getElementById('triageForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const ticketId = document.getElementById('ticketId').value;
-            const body = document.getElementById('ticketBody').value;
-            const apiKey = document.getElementById('apiKey').value;
+        const BADGES = {
+            processed: ['processed', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'],
+            flagged: ['flagged: injection', 'bg-rose-500/20 text-rose-400 border-rose-500/30'],
+            guardrail_unavailable: ['screening unavailable', 'bg-amber-500/20 text-amber-300 border-amber-500/30'],
+        };
+        const CLASSIFIERS = { fine_tuned_model: 'fine-tuned model', keyword_fallback: 'keyword fallback' };
 
-            const placeholder = document.getElementById('placeholder');
-            const loading = document.getElementById('loading');
-            const results = document.getElementById('results');
-            
-            placeholder.classList.add('hidden');
-            results.classList.add('hidden');
-            loading.classList.remove('hidden');
+        function showError(msg) {
+            $('errorBox').textContent = msg;
+            $('errorBox').classList.remove('hidden');
+        }
+
+        function render(d) {
+            $('resCategory').textContent = d.category || 'N/A';
+            $('resUrgency').textContent = d.urgency || 'N/A';
+            $('resTurns').textContent = d.turn_count ?? 1;
+            $('resResponse').textContent = d.response || 'No response generated.';
+            $('resDraftSource').textContent = d.draft_source === 'llm' ? '(LLM-drafted)' : d.draft_source === 'template' ? '(template fallback)' : '';
+
+            $('classifierRow').classList.toggle('hidden', !d.classifier);
+            $('resClassifier').textContent = CLASSIFIERS[d.classifier] || d.classifier || '';
+
+            const [label, cls] = BADGES[d.status] || [d.status, BADGES.processed[1]];
+            const badge = $('resStatus');
+            badge.textContent = label;
+            badge.className = `px-2.5 py-0.5 rounded-full text-xs font-medium uppercase border ${cls}`;
+
+            const notes = [...(d.flag_reason ? [d.flag_reason] : []), ...(d.safety_flags || [])];
+            $('resFlags').textContent = notes.join(' | ');
+            $('flagsContainer').classList.toggle('hidden', notes.length === 0);
+            $('results').classList.remove('hidden');
+        }
+
+        async function init() {
+            $('ticketId').value = newId('T-DEMO');
+            try {
+                const cfg = await (await fetch('/config')).json();
+                $('apiKeyWrap').classList.toggle('hidden', !cfg.requires_api_key);
+            } catch (_) { /* leave the key field hidden */ }
+        }
+        init();
+
+        $('triageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            $('errorBox').classList.add('hidden');
+            $('placeholder').classList.add('hidden');
+            $('results').classList.add('hidden');
+            $('slowHint').classList.add('hidden');
+            $('loading').classList.remove('hidden');
+            $('submitBtn').disabled = true;
+
+            const slowTimer = setTimeout(() => $('slowHint').classList.remove('hidden'), 4000);
+            const ctrl = new AbortController();
+            const abortTimer = setTimeout(() => ctrl.abort(), 60000);
 
             try {
-                // Automatically points to whichever domain/port Codespaces or localhost uses
-                const response = await fetch('/ticket', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': apiKey
-                    },
-                    body: JSON.stringify({ ticket_id: ticketId, body: body })
+                const headers = { 'Content-Type': 'application/json' };
+                const key = $('apiKey').value.trim();
+                if (key) headers['X-API-Key'] = key;
+
+                const res = await fetch('/ticket', {
+                    method: 'POST', headers, signal: ctrl.signal,
+                    body: JSON.stringify({ ticket_id: $('ticketId').value.trim(), body: $('ticketBody').value }),
                 });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Server request failed');
-
-                // Populate UI fields
-                document.getElementById('resCategory').textContent = data.category || 'N/A';
-                document.getElementById('resUrgency').textContent = data.urgency || 'N/A';
-                document.getElementById('resTurns').textContent = data.turn_count || 1;
-                document.getElementById('resResponse').textContent = data.response || 'No response generated.';
-                
-                const statusBadge = document.getElementById('resStatus');
-                statusBadge.textContent = data.status;
-                if (data.status === 'flagged') {
-                    statusBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-medium uppercase bg-rose-500/20 text-rose-400 border border-rose-500/30";
-                } else {
-                    statusBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-medium uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                let data = {};
+                try { data = await res.json(); } catch (_) {}
+                if (!res.ok) {
+                    throw new Error(
+                        res.status === 401 ? 'Invalid or missing API key.'
+                        : typeof data.detail === 'string' ? data.detail
+                        : 'Server request failed. Please try again.');
                 }
-
-                const flagsContainer = document.getElementById('flagsContainer');
-                if (data.safety_flags && data.safety_flags.length > 0) {
-                    document.getElementById('resFlags').textContent = data.safety_flags.join(', ');
-                    flagsContainer.classList.remove('hidden');
-                } else {
-                    flagsContainer.classList.add('hidden');
-                }
-
-                results.classList.remove('hidden');
+                render(data);
             } catch (err) {
-                alert('Error: ' + err.message);
+                showError(err.name === 'AbortError' ? 'The request timed out. Please try again.' : err.message);
+                $('placeholder').classList.remove('hidden');
             } finally {
-                loading.classList.add('hidden');
+                clearTimeout(slowTimer); clearTimeout(abortTimer);
+                $('loading').classList.add('hidden');
+                $('submitBtn').disabled = false;
             }
         });
     </script>
