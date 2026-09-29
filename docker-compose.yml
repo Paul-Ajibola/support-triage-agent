@@ -18,7 +18,7 @@ services:
       retries: 10
 
   redis:
-    image: redis/redis-stack-server@sha256:PASTE_YOUR_DIGEST_HERE
+    image: redis/redis-stack-server:latest
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD} --appendonly yes"
@@ -29,19 +29,29 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # no "ports:" on purpose; only the api container needs Redis, via the compose network
 
-  api:
-    # ...unchanged, except these two spots:
+  app:
+    build: .
+    dns:
+      - 168.63.129.16
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
     environment:
       DATABASE_URL: postgresql://triage:${POSTGRES_PASSWORD}@postgres:5432/triage_agent
       READONLY_DATABASE_URL: postgresql://triage_readonly:${READONLY_DB_PASSWORD}@postgres:5432/triage_agent
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    volumes:
+      - ./deploy/resolv.conf:/etc/resolv.conf:ro
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy     
+        condition: service_healthy
+    
+      
 
 volumes:
   pgdata:

@@ -13,7 +13,7 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 
-load_dotenv(".env.local")
+load_dotenv(".env")
 
 def ticket_lookup(query: str, limit: int = 3) -> list[dict]:
     """Search historical tickets for similar past issues."""

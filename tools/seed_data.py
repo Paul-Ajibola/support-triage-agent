@@ -14,7 +14,7 @@ import os
 from dotenv import load_dotenv
 
 
-load_dotenv(".env.local")
+load_dotenv(".env")
 
 # make DB connection
 conn = psycopg2.connect(os.getenv("DATABASE_URL"))

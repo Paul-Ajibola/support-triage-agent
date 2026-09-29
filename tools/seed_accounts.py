@@ -12,7 +12,7 @@ Requires: Postgres running, DATABASE_URL set in .env.local
 
 import psycopg2, os
 from dotenv import load_dotenv
-load_dotenv(".env.local")
+load_dotenv(".env")
 
 conn = psycopg2.connect(os.getenv("DATABASE_URL"))
 cur = conn.cursor()

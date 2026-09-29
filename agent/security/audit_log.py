@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import logging
 
 
-load_dotenv(".env.local")
+load_dotenv(".env")
 
 logger = logging.getLogger(__name__)
 

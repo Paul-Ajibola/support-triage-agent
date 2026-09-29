@@ -12,7 +12,7 @@ import psycopg2, os
 
 from dotenv import load_dotenv
 
-load_dotenv(".env.local")
+load_dotenv(".env")
 
 def account_context_db(account_id: str) -> dict:
     """Read-only lookup of account tier, spend, and rate limits."""

@@ -20,7 +20,7 @@ from groq import Groq
 from dotenv import load_dotenv
 
 
-load_dotenv(".env.local")
+load_dotenv(".env")
 
 logger = logging.getLogger(__name__)
 
