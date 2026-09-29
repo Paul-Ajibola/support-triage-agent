@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def log_security_event(ticket_id: str, event_type: str, detail: str, ticket_body: str = "") -> None:
     snippet = ticket_body[:200] if ticket_body else None
     try:
-        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"), connect_timeout=5)
         try:
              with conn, conn.cursor() as cur:      
                 cur.execute("""
