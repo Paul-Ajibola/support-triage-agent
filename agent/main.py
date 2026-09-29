@@ -79,6 +79,7 @@ def handle_ticket(ticket: TicketRequest):
         "status": "flagged" if result.get("is_flagged") else "processed",
         "category": result.get("category"),
         "urgency": result.get("urgency"),
+        "classifier": result.get("classifier")
         "response": result.get("draft_response"),
         "safety_flags": result.get("safety_flags", []),
         "turn_count": result.get("turn_count", 0),

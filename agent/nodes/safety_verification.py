@@ -11,7 +11,7 @@ from agent.state import AgentState
 
 
 def safety_verification(state: AgentState) -> AgentState:
-    flags = list(state.get("safety_flag", []))
+    flags = list(state.get("safety_flags", []))
 
     tool_results = state.get("tool_results", {})
 

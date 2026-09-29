@@ -13,9 +13,10 @@ from dotenv import load_dotenv
 from eval.category import CATEGORIES, URGENCY_LEVELS
 
 
-load_dotenv("env.local")
+load_dotenv(".env")
 
 _client = None
+
 
 def _get_client() -> OpenAI:
     """
@@ -66,21 +67,24 @@ def classify_ticket_finetuned(body: str) -> dict:
 
     try:
         parsed = json.loads(raw)
-        if not isinstance(parsed, dict):
-            parsed = {}
-    except json.JSONDecodeError:
-        parsed = {}
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Model returned invalid JSON: {raw}") from exc
 
-    category = parsed.get("category", "general")
-    urgency = parsed.get("urgency", "normal")
+
+    if not isinstance(parsed, dict):
+        raise RuntimeError("Model response must be a JSON object")
+
+    category = parsed.get("category")
+    urgency = parsed.get("urgency")
 
     if category not in CATEGORIES:
-        category = "general"
+        raise RuntimeError(f"Invalid category returned by model: {category}")
+
     if urgency not in URGENCY_LEVELS:
-        urgency = "normal"
+        raise RuntimeError(f"Invalid urgency returned by model: {urgency}")
+
 
     usage = response.usage
-
 
     return {
         "category": category,
@@ -89,3 +93,4 @@ def classify_ticket_finetuned(body: str) -> dict:
         "input_tokens": usage.prompt_tokens if usage else None,
         "output_tokens": usage.completion_tokens if usage else None,
     }
+

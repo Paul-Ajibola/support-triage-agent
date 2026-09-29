@@ -6,6 +6,7 @@ class AgentState(TypedDict):
     body: str
     category: Optional[str]
     urgency: Optional[str]
+    classifier: Optional[str]
     tools_to_call: List[str]
     tool_results: dict
     safety_flags: List[str]

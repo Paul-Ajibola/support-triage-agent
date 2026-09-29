@@ -46,10 +46,13 @@ def intent_routing(state: AgentState) -> AgentState:
     except Exception:
         logger.warning("classifier failed, using keyword fallback", exc_info=True)
         result = _keyword_fallback(state["body"])
-
+        result["classifier"] = "keyword_fallback"
+    else:
+        result["classifier"] = "fine_tuned_model"
 
     state["category"] = result["category"]
     state["urgency"] = result["urgency"]
+    state["classifier"] = result["classifier"]
     return state
 
 
