@@ -7,7 +7,7 @@ Not part of the live agent pipeline -- run once per environment.
 """
 
 
-import psycopy2
+import psycopg2
 import os
 from dotenv import load_dotenv
 
@@ -20,12 +20,12 @@ conn = psycopg2.connect(os.getenv("DATABASE_URL"))
 cur = conn.cursor()
 cur.execute("""
 CREATE TABLE IF NOT EXISTS security_audit_log (
-id SERIAL PRIMARY KEY,
-ticket_id TEXT,
-event_type TEXT NOT NULL,
-detail TEXT,
-ticket_body_snippet TEXT,
-created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    id SERIAL PRIMARY KEY,
+    ticket_id TEXT,
+    event_type TEXT NOT NULL,
+    detail TEXT,
+    ticket_body_snippet TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 """)
 conn.commit()

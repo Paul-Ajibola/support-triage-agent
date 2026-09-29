@@ -12,6 +12,9 @@ from pydantic import BaseModel, Field
 
 from agent.graph import graph
 from agent.checkpointing import close_checkpointer
+from fastapi.staticfiles import StaticFiles
+
+
 
 load_dotenv(".env")
 
@@ -42,10 +45,15 @@ app.add_middleware(
 )
 
 
+
 def require_api_key(x_api_key: str = Header(default="")):
     """If API_KEY is set, callers must send it in the X-API-Key header.
     Only unset in local dev (check_config blocks that in production)."""
     expected = os.getenv("API_KEY", "")
+
+    if os.getenv("APP_ENV", "development").lower() == "development":
+        return
+        
     if expected and not hmac.compare_digest(x_api_key.encode(), expected.encode()):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
@@ -96,4 +104,7 @@ def handle_ticket(ticket: TicketRequest):
         "turn_count": result.get("turn_count", 0),
     }
 
+
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 

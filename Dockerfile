@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY agent ./agent
 COPY tools ./tools
 COPY eval ./eval
+COPY static ./static
 
 
 RUN useradd --create-home appuser

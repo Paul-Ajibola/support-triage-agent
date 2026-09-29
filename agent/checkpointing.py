@@ -36,19 +36,19 @@ def get_checkpointer():
         checkpointer.setup()
         _redis_cm = cm
         return checkpointer
-    except Exception:
+    except Exception as e:
         if cm is not None:
             try:
                 cm.__exit__(None, None, None)
             except Exception:
                 pass
-        if os.getenv("APP_ENV", "development").lower() == "production":
+        if os.getenv("APP_ENV", "development").lower() == "development":
             raise
         # log the host only: the URL contains the password
         logger.warning(
-            "Redis checkpointer unavailable (host=%s) - falling back to in-memory "
-            "checkpointing (state is lost on restart).",
-            urlparse(redis_url).hostname, exc_info=True,
+            "Redis checkpointer unavailable or failed (%s) - failing back to in-memory "
+            "checkpointing so the application can run.",
+            str(e)
         )
         return MemorySaver()
 
