@@ -13,7 +13,7 @@ import os
 def context_enrichment(state: AgentState) -> AgentState:
     """decides which tools are relevant based on the classification
     by the previous node--the intent-routing node"""
-    sandbox_enabled = os.getenv("SANDBOX_ENABLED", "false").lower() == "true"
+    sandbox_enabled = os.getenv("SANDBOX_ENABLED", "false").lower() == "true" == "true"
     
     tools = ["ticket_lookup"]    # always check historical tickets
 

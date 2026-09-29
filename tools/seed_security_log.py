@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv(".env")
 
 
-conn = psycopy2.connect(os.getenv("DATABASR_URL"))
+conn = psycopg2.connect(os.getenv("DATABASE_URL"))
 cur = conn.cursor()
 cur.execute("""
 CREATE TABLE IF NOT EXISTS security_audit_log (

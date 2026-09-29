@@ -5,6 +5,9 @@ from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
 from pydantic import BaseModel, Field
 
 from agent.graph import graph
@@ -29,6 +32,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Support Triage Agent", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def require_api_key(x_api_key: str = Header(default="")):
