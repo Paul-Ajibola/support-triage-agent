@@ -24,11 +24,11 @@ def draft_generation(state: AgentState) -> AgentState:
     response = f"[category]={state['category']}, urgency={state['urgency']} {suggestion}"
     state["draft_response"] = response
 
-    history = state.get("conversation_history", [])
+    history = list(state.get("conversation_history", []))
     history.append(response)
     state["conversation_history"] = history
 
 
-    staet["turn_count"] = state.get("turn_count", 0) + 1
+    state["turn_count"] = state.get("turn_count", 0) + 1
     return state
     

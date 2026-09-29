@@ -9,8 +9,9 @@ real adversarial/injection defense, added in Phase 7.
 # import libraries
 from agent.state import AgentState
 
+
 def safety_verification(state: AgentState) -> AgentState:
-    flags = []
+    flags = list(state.get("safety_flag", []))
 
     sandbox_result = state["tool_results"].get("sandbox_runner")
     if sandbox_result and sandbox_result.get("exit_code", 0) != 0:
@@ -20,6 +21,6 @@ def safety_verification(state: AgentState) -> AgentState:
     if account_result and "error" in account_result:
         flags.append("account_lookup_failed")
 
-    state["safety_flags"] = flags
+    state["safety_flags"] = list(dict.fromkeys(flag))
     return state
 

@@ -10,15 +10,33 @@ import os
 import time
 from openai import OpenAI
 from dotenv import load_dotenv
-from eval.category import CATEGORIS, URGENCY_LEVELS
+from eval.category import CATEGORIES, URGENCY_LEVELS
 
 
 load_dotenv("env.local")
 
-client = OpenAI(
-    base_url = os.getenv("FINETUNED_MODEL_URL"),
-    api_key="not-needed"
-)
+_client = None
+
+def _get_client() -> OpenAI:
+    """
+    Create the client lazily, so importing this module never crashes
+    if the URL is missing, this raises and intent_routing falls back to keyword
+    matching.
+    """
+    global _client
+    if _client is None:
+        base_url = os.getenv("FINETUNED_MODEL_URL")
+        if not base_url:
+            raise RuntimeError("FINETUNED_MODEL_URL is not set")
+        _client = OpenAI(
+            base_url=base_url,
+            api_key=os.getenv("FINETUNED_MODEL_API_KEY", "not-needed"),
+            timeout=30,
+            max_retries=1,
+        )
+    return _client
+
+
 
 
 SYSTEM_PROMPT = f"""You are a support ticket classifier.
@@ -27,6 +45,8 @@ And exactly one urgency level from: {URGENCY_LEVEL}
 Respond ONLY with JSON in this exact format, no other text:
 {{"category": "...", "urgency": "..."}}
 """
+
+
 
 def classify_ticket_finetuned(body: str) -> dict:
     start = time.time()
@@ -41,20 +61,30 @@ def classify_ticket_finetuned(body: str) -> dict:
     )
 
     latency_ms = (time.time() - start) * 1000
-    raw = response.choices[0].message.content.strip()
+    raw = (response.choices[0].message.content or "").strip()
 
 
     try:
-        parsed = json.load(raw)
+        parsed = json.loads(raw)
+        if not isinstance(parsed, dict):
+            parsed = {}
     except json.JSONDecodeError:
-        parsed = {"category": "general", "urgency": "normal"}
+        parsed = {}
+
+    category = parsed.get("category", "general")
+    urgency = parsed.get("urgency", "normal")
+
+    if category not in CATEGORIES:
+        category = "general"
+    if urgency not in URGENCY_LEVELS:
+        urgency = "normal"
 
     usage = response.usage
 
 
     return {
-        "category": parsed.get("category", "general"),
-        "urgency": parsed.get("urgency": "normal"),
+        "category": category,
+        "urgency": urgency,
         "latency_ms": latency_ms,
         "input_tokens": usage.prompt_tokens if usage else None,
         "output_tokens": usage.completion_tokens if usage else None,

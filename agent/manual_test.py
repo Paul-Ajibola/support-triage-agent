@@ -7,7 +7,7 @@ result = graph.invoke({
     "category": None,
     "urgency": None,
     "tools_to_call": [],
-    "tool_results": [],
+    "tool_results": {},
     "safety_flags": [],
     "draft_response": None,
 })

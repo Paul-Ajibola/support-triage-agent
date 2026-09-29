@@ -13,22 +13,33 @@ import subprocess
 import tempfile
 #  to interact with os
 import os
+# unique container names, so a timed-out container can be killed
+import uuid
 
 
-def sandbox_runner(code: str, timeout: int=5) -> dict:
+
+def sandbox_runner(code: str, timeout: int = 5) -> dict:
     """Execute a bug-report code snippet in an isolated Docker container."""
-    # create temporty file with a name
+    # create temporary file with a name
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-        # don't delete because we'll hand it down to docker later. We'll delete later ourselves
         f.write(code)
-        # get the temp file location (path)
+
         script_path = f.name
+    os.chmod(script_path, 0o644)
+
+    container_name = f"sandbox-{uuid.uuid4().hex[:12]}"
 
     try:
         result = subprocess.run(
             [
                 "docker", "run", "--rm",
+                "--name", container_name,
                 "--network", "none",
+                "--memory", "128m",
+                "--cpus", "0.5",
+                "--pids-limit", "64",
+                "--cap-drop", "ALL",
+                "--security-opt", "no-new-privileges",
                 "-v", f"{script_path}:/sandbox/script.py:ro",
                 "python:3.11-slim",
                 "python", "/sandbox/script.py"
@@ -38,13 +49,12 @@ def sandbox_runner(code: str, timeout: int=5) -> dict:
             timeout=timeout
         )
 
-
         return {"stdout": result.stdout, "stderr": result.stderr, "exit_code": result.returncode}
     except subprocess.TimeoutExpired:
+        subprocess.run(["docker", "kill", container_name], capture_output=True)
         return {"stdout": "", "stderr": "Execution timed out", "exit_code": -1}
-    # finally -> execute code irrespective of what happens above
+    except FileNotFoundError:
+        return {"stdout": "", "stderr": "Docker is not available in this environment", "exit_code": -1}
+    
     finally:
         os.remove(script_path)
-
-# ro -> read-only
-

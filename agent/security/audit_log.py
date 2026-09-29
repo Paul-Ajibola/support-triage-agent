@@ -8,20 +8,28 @@ state.
 import psycopg2
 import os
 from dotenv import load_dotenv
+import logging
 
 
 load_dotenv(".env.local")
 
+logger = logging.getLogger(__name__)
+
 
 def log_security_event(ticket_id: str, event_type: str, detail: str, ticket_body: str = "") -> None:
-    conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-    cur = conn.cursor()
     snippet = ticket_body[:200] if ticket_body else None
-    cur.execute("""
-        INSERT INTO security_audit_log (ticket_id, event_type, detail, ticket_body_snippet)
-        VALUES (%s, %s, %s, %s);
-    """, (ticket_id, event_type, detail, snippet))
-    conn.commit()
-    cur.close()
-    conn.close()
+    try:
+        conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        try:
+             with conn, conn.cursor() as cur:      
+                cur.execute("""
+                    INSERT INTO security_audit_log (ticket_id, event_type, detail, ticket_body_snippet)
+                    VALUES (%s, %s, %s, %s);
+                """, (ticket_id, event_type, detail, snippet))
+        finally:
+            conn.close()
+    except Exception:
+        logger.exception(
+            "Could not write security audit event (ticket=%s, type=%s)", ticket_id, event_type
+        )
 
