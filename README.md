@@ -11,6 +11,7 @@ The project also includes a **fine-tuned Llama 3 8B model** specifically trained
 This distinction is intentional: the fine-tuned model is part of the project and its integration path, but deploying and serving the model is a separate infrastructure step.
 
 ---
+## Deployed App: https://support-triage-agent-suhw.onrender.com/
 
 ## Table of Contents
 
