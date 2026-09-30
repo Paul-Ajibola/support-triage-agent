@@ -141,7 +141,7 @@ def config():
     return {"demo_mode": demo_mode(), "requires_api_key": not demo_mode() and _env() != "development"}
 
 
-@app.post("/ticket", dependencies=[Depends(require_api_key), Depends(rate_limit)])
+
 def _public_tools(tool_results: dict) -> dict:
     """Trimmed, UI-safe view of tool results (no raw account or spend data)."""
     out = {"tool_status": {}, "similar_tickets": []}
@@ -157,6 +157,7 @@ def _public_tools(tool_results: dict) -> dict:
     return out
 
 
+@app.post("/ticket", dependencies=[Depends(require_api_key), Depends(rate_limit)])
 def handle_ticket(ticket: TicketRequest):
     config = {"configurable": {"thread_id": ticket.ticket_id}}
 

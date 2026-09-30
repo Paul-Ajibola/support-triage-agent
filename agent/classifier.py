@@ -11,6 +11,7 @@ import threading
 import httpx
 import os
 import time
+import re
 from openai import OpenAI
 from dotenv import load_dotenv
 from eval.category import CATEGORIES, URGENCY_LEVELS
@@ -31,13 +32,13 @@ def _get_client() -> OpenAI:
     """
     global _client
     if _client is None:
-        base_url = os.getenv("FINETUNED_MODEL_URL")
+        base_url = os.getenv("CLASSIFIER_BASE_URL") or os.getenv("FINETUNED_MODEL_URL")
         if not base_url:
-            raise RuntimeError("FINETUNED_MODEL_URL is not set")
+            raise RuntimeError("CLASSIFIER_BASE_URL is not set")
         _client = OpenAI(
             base_url=base_url,
-            api_key=os.getenv("FINETUNED_MODEL_API_KEY", "not-needed"),
-            timeout=30,
+            api_key=os.getenv("CLASSIFIER_API_KEY") or os.getenv("FINETUNED_MODEL_API_KEY", "not-needed"),
+            timeout=float(os.getenv("CLASSIFIER_TIMEOUT", "15")),
             max_retries=1,
         )
     return _client
@@ -47,7 +48,7 @@ def _get_client() -> OpenAI:
 def warm_up() -> None:
     """Wake a sleeping HF Space in the background at app startup, so the first
     visitor doesn't pay the cold start (they get the keyword fallback until it's up)."""
-    base = os.getenv("FINETUNED_MODEL_URL")
+    base = os.getenv("CLASSIFIER_BASE_URL") or os.getenv("FINETUNED_MODEL_URL")
     if not base:
         return
 
@@ -75,7 +76,7 @@ def classify_ticket_finetuned(body: str) -> dict:
     start = time.time()
 
     response = _get_client().chat.completions.create(
-        model="finetuned-llama-3-8b",   # llama.cpp server ignores this but he SDK requires it
+        model=os.getenv("CLASSIFIER_MODEL", "finetuned-llama-3-8b"),   # llama.cpp server ignores this but he SDK requires it
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": body},
@@ -85,6 +86,7 @@ def classify_ticket_finetuned(body: str) -> dict:
 
     latency_ms = (time.time() - start) * 1000
     raw = (response.choices[0].message.content or "").strip()
+    raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw, flags=re.IGNORECASE).strip()
 
 
     try:

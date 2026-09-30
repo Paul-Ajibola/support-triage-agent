@@ -48,7 +48,7 @@ def intent_routing(state: AgentState) -> AgentState:
         result = _keyword_fallback(state["body"])
         result["classifier"] = "keyword_fallback"
     else:
-        result["classifier"] = "fine_tuned_model"
+        result["classifier"] = "llm_classifier"
 
     state["category"] = result["category"]
     state["urgency"] = result["urgency"]
