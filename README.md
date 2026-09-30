@@ -14,7 +14,7 @@ This distinction is intentional: the fine-tuned model is part of the project and
 
 ## Table of Contents
 
-* [Folder Structure]
+* Folder Structure
 * [Project Overview](#project-overview)
 * [Key Features](#key-features)
 * [Architecture](#architecture)
@@ -46,17 +46,17 @@ This distinction is intentional: the fine-tuned model is part of the project and
 ---
 support-triage-agent/
 │
-├── agent/
+├── agent/                  
 │   ├── __init__.py
-│   ├── main.py
-│   ├── graph.py
-│   ├── state.py
-│   ├── classifier.py
-│   ├── checkpointing.py
-│   ├── db_setup.py
-│   ├── tool_validation.py
+│   ├── main.py             
+│   ├── graph.py            
+│   ├── state.py            
+│   ├── classifier.py      
+│   ├── checkpointing.py    
+│   ├── db_setup.py         
+│   ├── tool_validation.py  
 │   │
-│   ├── nodes/
+│   ├── nodes/              
 │   │   ├── __init__.py
 │   │   ├── context_enrichment.py
 │   │   ├── draft_generation.py
@@ -66,37 +66,36 @@ support-triage-agent/
 │   │   ├── safety_verification.py
 │   │   └── tool_execution.py
 │   │
-│   └── security/
+│   └── security/           
 │       ├── __init__.py
 │       ├── audit_log.py
 │       ├── guardrail.py
 │       └── injection_guardrail.py
 │
-├── tools/
+├── tools/                  
 │   ├── __init__.py
 │   ├── account_context_db.py
 │   ├── sandbox_runner.py
 │   └── ticket_lookup.py
 │
-├── eval/
+├── eval/                   
 │   ├── baseline_classifier.py
 │   ├── category.py
 │   └── ...
 │
-├── static/
+├── static/                 
 │   └── index.html
 │
-├── deploy/
+├── deploy/                 
 │   └── init/
 │
-├── .env
-├── .env.example
-├── .gitignore
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
----
+├── .env                    
+├── .env.example            
+├── .gitignore             
+├── Dockerfile              
+├── docker-compose.yml      
+├── requirements.txt        
+└── README.md               
 ---
 
 # Project Overview
