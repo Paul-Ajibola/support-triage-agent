@@ -14,7 +14,6 @@ This distinction is intentional: the fine-tuned model is part of the project and
 
 ## Table of Contents
 
-* Folder Structure
 * [Project Overview](#project-overview)
 * [Key Features](#key-features)
 * [Architecture](#architecture)
@@ -43,60 +42,7 @@ This distinction is intentional: the fine-tuned model is part of the project and
 * [Project Status](#project-status)
 
 
----
-support-triage-agent/
-│
-├── agent/                  
-│   ├── __init__.py
-│   ├── main.py             
-│   ├── graph.py            
-│   ├── state.py            
-│   ├── classifier.py      
-│   ├── checkpointing.py    
-│   ├── db_setup.py         
-│   ├── tool_validation.py  
-│   │
-│   ├── nodes/              
-│   │   ├── __init__.py
-│   │   ├── context_enrichment.py
-│   │   ├── draft_generation.py
-│   │   ├── human_escalation.py
-│   │   ├── intent_routing.py
-│   │   ├── routing.py
-│   │   ├── safety_verification.py
-│   │   └── tool_execution.py
-│   │
-│   └── security/           
-│       ├── __init__.py
-│       ├── audit_log.py
-│       ├── guardrail.py
-│       └── injection_guardrail.py
-│
-├── tools/                  
-│   ├── __init__.py
-│   ├── account_context_db.py
-│   ├── sandbox_runner.py
-│   └── ticket_lookup.py
-│
-├── eval/                   
-│   ├── baseline_classifier.py
-│   ├── category.py
-│   └── ...
-│
-├── static/                 
-│   └── index.html
-│
-├── deploy/                 
-│   └── init/
-│
-├── .env                    
-├── .env.example            
-├── .gitignore             
-├── Dockerfile              
-├── docker-compose.yml      
-├── requirements.txt        
-└── README.md               
----
+----
 
 # Project Overview
 
@@ -2306,18 +2252,8 @@ The result is a portfolio project covering **AI engineering, machine learning, L
 
 **Paul Ajibola**
 
-AI Engineer / Data & AI Practitioner
 
-Focus areas:
 
-* Artificial Intelligence
-* Machine Learning
-* LLM Applications
-* AI Agents
-* Data Science
-* AI Security
-* Healthcare AI
-* Production AI Systems
 
 
 
