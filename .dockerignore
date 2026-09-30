@@ -6,6 +6,5 @@ __pycache__
 .env.*
 finetune
 deploy
-frontend
 *.zip
 *.ipynb
