@@ -426,7 +426,7 @@ The goal is to give the response-generation stage additional information without
 
 ---
 
-## Step 6 — Tool Execution
+## Step 6 — Tool Execution of the entire system
 
 Tools are executed through:
 
